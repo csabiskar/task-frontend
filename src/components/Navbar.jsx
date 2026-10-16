@@ -15,9 +15,15 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobilePagesOpen, setMobilePagesOpen] = useState(false);
   const [pagesDropdownOpen, setPagesDropdownOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("Home");
   const [searchQuery, setSearchQuery] = useState("");
+  const [year, setYear] = useState(2026);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +36,24 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Lock page scroll while the mobile drawer is open + close on Escape
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+    const onKey = (e) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileMenuOpen]);
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setMobilePagesOpen(false);
+  };
 
   const navItems = [
     { name: "About", href: "#about" },
@@ -50,15 +74,22 @@ export default function Navbar() {
     { name: "Contact", href: "#quote" },
   ];
 
+  const itemAnim = (i) => ({
+    transitionDelay: mobileMenuOpen ? `${150 + i * 55}ms` : "0ms",
+  });
+  const itemClass = `transition-all duration-500 ease-out ${
+    mobileMenuOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6"
+  }`;
+
   return (
     <header className="absolute top-0 left-0 w-full z-50 pointer-events-auto">
-      {/* ==================== 1. TOP BAR ==================== */}
       <div className="hidden sm:block bg-[#243344] text-white py-3 px-4 sm:px-8 border-b border-white/5">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center text-[13px] gap-2">
-          {/* Left: Call Us */}
           <div className="flex items-center space-x-2">
-            <span className="text-[#94a3b8] font-normal"
-            style={{ fontFamily: '"Times New Roman", Times, serif' }}>
+            <span
+              className="text-[#94a3b8] font-normal"
+              style={{ fontFamily: '"Times New Roman", Times, serif' }}
+            >
               Have any questions? call us
             </span>
             <a
@@ -66,11 +97,12 @@ export default function Navbar() {
               className="inline-flex items-center text-white font-bold text-[14px] hover:text-[#f4c03b] transition-colors ml-2 group"
             >
               <Phone className="w-3.5 h-3.5 text-[#f4c03b] fill-[#f4c03b] mr-1.5 transition-transform group-hover:scale-110" />
-              <span style={{ fontFamily: '"Times New Roman", Times, serif' }}>+1 (818) 23 45 678</span>
+              <span style={{ fontFamily: '"Times New Roman", Times, serif' }}>
+                +1 (818) 23 45 678
+              </span>
             </a>
           </div>
 
-          {/* Right: Social Media Icons (Facebook, X, Instagram, LinkedIn) */}
           <div className="flex items-center space-x-5 text-white/90">
             <a
               href="https://facebook.com"
@@ -112,7 +144,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ==================== 2. MAIN NAVBAR ==================== */}
       <div
         className={`w-full transition-all duration-300 ${
           isScrolled
@@ -121,7 +152,6 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between">
-          {/* Logo */}
           <Link href="#hero" className="relative block h-11 md:h-12 w-48 md:w-56">
             <Image
               src="/images/logo-construction.png"
@@ -134,7 +164,6 @@ export default function Navbar() {
 
           {/* Desktop Navigation Menu */}
           <nav className="hidden lg:flex items-center space-x-7 xl:space-x-8 text-[15px] font-poppins font-medium text-[#243344]">
-            {/* 1. Home Item: House Icon with Yellow Bar Underneath */}
             <Link
               href="#hero"
               onClick={() => setActiveLink("Home")}
@@ -206,10 +235,7 @@ export default function Navbar() {
               </div>
             ))}
           </nav>
-
-          {/* Right Action Buttons */}
           <div className="hidden sm:flex items-center space-x-5">
-            {/* Search Icon */}
             <div className="relative">
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
@@ -241,8 +267,6 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-
-            {/* Free Consultation Button (White Box Card with Shadow) */}
             <button
               type="button"
               style={{ fontFamily: '"Times New Roman", Times, serif' }}
@@ -252,7 +276,6 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Mobile Buttons: Yellow Phone Box & Navy Hamburger Box */}
           <div className="flex items-center space-x-1.5 lg:hidden">
             <a
               href="tel:0018182345678"
@@ -262,100 +285,156 @@ export default function Navbar() {
               <Phone className="w-5 h-5 fill-current" />
             </a>
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => setMobileMenuOpen(true)}
               className="w-11 h-11 bg-[#243344] hover:bg-[#1b2632] text-white flex items-center justify-center transition-colors shadow-sm focus:outline-none"
-              aria-label="Toggle menu"
+              aria-label="Open menu"
+              aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6 stroke-[2.5]" />
-              ) : (
-                <Menu className="w-6 h-6 stroke-[2.5]" />
-              )}
+              <Menu className="w-6 h-6 stroke-[2.5]" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-[#243344]/80 backdrop-blur-sm">
-          <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
-            <div>
-              <div className="flex items-center justify-between pb-6 border-b border-gray-100">
-                <div className="relative h-9 w-36">
-                  <Image
-                    src="/images/logo-construction.png"
-                    alt="XTRA Construction Logo"
-                    fill
-                    className="object-contain object-left"
-                  />
-                </div>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-1 text-gray-500 hover:text-[#243344]"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+      <div
+        className={`lg:hidden fixed inset-0 z-[60] ${
+          mobileMenuOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        <div
+          onClick={closeMobileMenu}
+          className={`absolute inset-0 bg-black/60 backdrop-blur-[2px] transition-opacity duration-500 ease-in-out ${
+            mobileMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+        /> 
+        <button
+          onClick={closeMobileMenu}
+          aria-label="Close menu"
+          className={`absolute top-5 right-[calc(min(85%,24rem)+14px)] w-10 h-10 flex items-center justify-center text-white transition-all duration-500 ease-out ${
+            mobileMenuOpen
+              ? "opacity-100 rotate-0 delay-300"
+              : "opacity-0 -rotate-90"
+          }`}
+        >
+          <X className="w-9 h-9 stroke-[1.2]" />
+        </button>
+        <aside
+          className={`absolute inset-y-0 right-0 w-[85%] max-w-sm bg-gradient-to-b from-[#243344] to-[#1b1b1b] shadow-2xl flex flex-col justify-between overflow-y-auto will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <nav className="flex flex-col">
+            {/* Home */}
+            <Link
+              href="#hero"
+              onClick={() => {
+                setActiveLink("Home");
+                closeMobileMenu();
+              }}
+              style={itemAnim(0)}
+              className={`flex items-center px-8 py-[18px] border-b border-white/10 ${itemClass}`}
+              aria-label="Home"
+            >
+              <svg className="w-5 h-5 fill-[#f4c03b]" viewBox="0 0 24 24">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+              </svg>
+            </Link>
 
-              <div className="flex flex-col space-y-4 mt-6">
-                <Link
-                  href="#hero"
-                  onClick={() => {
-                    setActiveLink("Home");
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`flex items-center space-x-2 text-base font-semibold py-1.5 transition-colors ${
-                    activeLink === "Home"
-                      ? "text-[#f4c03b]"
-                      : "text-[#243344] hover:text-[#f4c03b]"
-                  }`}
+            {navItems.map((item, i) =>
+              item.hasDropdown ? (
+                <div
+                  key={item.name}
+                  style={itemAnim(i + 1)}
+                  className={`border-b border-white/10 ${itemClass}`}
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-                  </svg>
-                  <span>Home</span>
-                </Link>
-
-                {navItems.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => {
-                      setActiveLink(item.name);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`text-base font-semibold py-1.5 transition-colors ${
-                      activeLink === item.name
-                        ? "text-[#f4c03b]"
-                        : "text-[#243344] hover:text-[#f4c03b]"
+                  <button
+                    type="button"
+                    onClick={() => setMobilePagesOpen((v) => !v)}
+                    aria-expanded={mobilePagesOpen}
+                    className={`w-full flex items-center justify-between px-8 py-[18px] font-poppins font-semibold text-[17px] text-left ${
+                      mobilePagesOpen ? "text-[#f4c03b]" : "text-white"
                     }`}
                   >
-                    {item.name}
-                  </a>
-                ))}
-              </div>
-            </div>
+                    <span>{item.name}</span>
+                    <ChevronDown
+                      className={`w-5 h-5 stroke-[2.5] transition-transform duration-300 ${
+                        mobilePagesOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  <div
+                    className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+                      mobilePagesOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="bg-black/20 py-2">
+                        {item.subItems.map((sub) => (
+                          <a
+                            key={sub.name}
+                            href={sub.href}
+                            onClick={() => {
+                              setActiveLink(item.name);
+                              closeMobileMenu();
+                            }}
+                            className="block px-12 py-3 font-poppins text-[15px] text-white/80 hover:text-[#f4c03b] transition-colors"
+                          >
+                            {sub.name}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => {
+                    setActiveLink(item.name);
+                    closeMobileMenu();
+                  }}
+                  style={itemAnim(i + 1)}
+                  className={`px-8 py-[18px] border-b border-white/10 font-poppins font-semibold text-[17px] hover:text-[#f4c03b] ${
+                    activeLink === item.name ? "text-[#f4c03b]" : "text-white"
+                  } ${itemClass}`}
+                >
+                  {item.name}
+                </a>
+              )
+            )}
+          </nav>
 
-            <div className="pt-6 border-t border-gray-100 space-y-4">
-              <a
-                href="tel:0018182345678"
-                className="flex items-center text-[#243344] font-bold text-sm"
-              >
-                <Phone className="w-4 h-4 text-[#f4c03b] mr-2" />
-                <span>+1 (818) 23 45 678</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full bg-[#243344] text-[#f4c03b] font-bold text-sm tracking-wider uppercase py-3 text-center"
-              >
-                Free Consultation
-              </button>
+          <div
+            style={itemAnim(navItems.length + 2)}
+            className={`pb-10 pt-10 ${itemClass}`}
+          >
+            <div className="flex items-center justify-center gap-3">
+              {[
+                { Icon: FacebookIcon, href: "https://facebook.com", label: "Facebook" },
+                { Icon: XTwitterIcon, href: "https://twitter.com", label: "X / Twitter" },
+                { Icon: InstagramIcon, href: "https://instagram.com", label: "Instagram" },
+                { Icon: LinkedinIcon, href: "https://linkedin.com", label: "LinkedIn" },
+              ].map(({ Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="w-10 h-10 bg-[#f4c03b] hover:bg-white text-[#243344] flex items-center justify-center transition-colors"
+                >
+                  <Icon className="w-[18px] h-[18px]" />
+                </a>
+              ))}
             </div>
+            <p className="mt-8 text-center font-poppins text-base text-white/60">
+              © Copyright {year}
+            </p>
           </div>
-        </div>
-      )}
+        </aside>
+      </div>
     </header>
   );
 }
